@@ -377,7 +377,174 @@ Before running tests, verify:
 
 ---
 
+## System dependency abstraction - P1
+
+Abstract system APIs (Timer, Date, UUID, etc.) to make code testable without real delays or non-deterministic values.
+
+### Timer abstraction
+
+**Protocol definition:**
+
+```swift
+protocol TimerProviderProtocol {
+  func scheduledTimer(
+    withTimeInterval interval: TimeInterval,
+    repeats: Bool,
+    block: @escaping () -> Void
+  ) -> TimerToken
+}
+
+protocol TimerToken {
+  func invalidate()
+}
+```
+
+**Default implementation:**
+
+```swift
+final class DefaultTimerProvider: TimerProviderProtocol {
+  func scheduledTimer(
+    withTimeInterval interval: TimeInterval,
+    repeats: Bool,
+    block: @escaping () -> Void
+  ) -> TimerToken {
+    let timer = Timer.scheduledTimer(
+      withTimeInterval: interval,
+      repeats: repeats
+    ) { _ in block() }
+    return DefaultTimerToken(timer: timer)
+  }
+}
+```
+
+**Mock implementation:**
+
+```swift
+final class MockTimerProvider: TimerProviderProtocol {
+  var scheduledTimerCallCount = 0
+  private(set) var storedHandler: (() -> Void)?
+
+  func scheduledTimer(
+    withTimeInterval interval: TimeInterval,
+    repeats: Bool,
+    block: @escaping () -> Void
+  ) -> TimerToken {
+    scheduledTimerCallCount += 1
+    storedHandler = block
+    return MockTimerToken(provider: self)
+  }
+
+  /// Fire the timer callback synchronously
+  func fire() {
+    storedHandler?()
+  }
+}
+```
+
+**Usage in production:**
+
+```swift
+class MouseTracker {
+  private let timerProvider: TimerProviderProtocol
+
+  init(timerProvider: TimerProviderProtocol = DefaultTimerProvider()) {
+    self.timerProvider = timerProvider
+  }
+}
+```
+
+**Usage in tests:**
+
+```swift
+@Test func start_WhenTimerFires_CallsHandler() {
+  let mockTimer = MockTimerProvider()
+  let tracker = MouseTracker(timerProvider: mockTimer)
+
+  tracker.start()
+  mockTimer.fire()  // Synchronous, no sleep needed
+
+  #expect(/* handler was called */)
+}
+```
+
+### Date abstraction (Closure injection)
+
+For simple cases, use closure injection instead of protocols:
+
+**Production code:**
+
+```swift
+class CacheManager {
+  private let dateGenerator: () -> Date
+
+  init(dateGenerator: @escaping () -> Date = Date.init) {
+    self.dateGenerator = dateGenerator
+  }
+
+  func isExpired(cachedAt: Date, ttl: TimeInterval) -> Bool {
+    let now = dateGenerator()
+    return now.timeIntervalSince(cachedAt) > ttl
+  }
+}
+```
+
+**Test code:**
+
+```swift
+@Test func isExpired_AfterTTL_ReturnsTrue() {
+  let fixedDate = Date(timeIntervalSince1970: 1000)
+  let cache = CacheManager(dateGenerator: { fixedDate })
+
+  let cachedAt = Date(timeIntervalSince1970: 0)
+  let result = cache.isExpired(cachedAt: cachedAt, ttl: 500)
+
+  #expect(result == true)
+}
+```
+
+### UUID abstraction
+
+**Production code:**
+
+```swift
+class ItemFactory {
+  private let uuidGenerator: () -> UUID
+
+  init(uuidGenerator: @escaping () -> UUID = UUID.init) {
+    self.uuidGenerator = uuidGenerator
+  }
+
+  func createItem(name: String) -> Item {
+    Item(id: uuidGenerator().uuidString, name: name)
+  }
+}
+```
+
+**Test code:**
+
+```swift
+@Test func createItem_UsesGeneratedUUID() {
+  let fixedUUID = UUID(uuidString: "12345678-1234-1234-1234-123456789ABC")!
+  let factory = ItemFactory(uuidGenerator: { fixedUUID })
+
+  let item = factory.createItem(name: "Test")
+
+  #expect(item.id == "12345678-1234-1234-1234-123456789ABC")
+}
+```
+
+### When to use which pattern
+
+| Pattern | Use case |
+|---------|----------|
+| Protocol abstraction | Timer, complex APIs with multiple methods |
+| Closure injection | Date, UUID, simple single-value generators |
+
+---
+
 ## References
 
 - [Testing](testing.md)
 - [Architecture](architecture.md)
+- [Swift by Sundell - Time Traveling in Tests](https://www.swiftbysundell.com/articles/time-traveling-in-swift-unit-tests/)
+- [Point-Free swift-dependencies](https://github.com/pointfreeco/swift-dependencies)

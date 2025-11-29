@@ -4,6 +4,122 @@
 
 This document defines conventions for SwiftUI Views. Following these conventions ensures consistent, maintainable, and testable UI code.
 
+> **Note:** This document targets macOS 14+ / iOS 17+, which supports the Observation framework (`@Observable`).
+
+---
+
+## State management patterns - P1
+
+### @Observable vs ObservableObject
+
+Use `@Observable` for new code. It provides better performance through granular property tracking.
+
+| Aspect | @Observable (Recommended) | ObservableObject (Legacy) |
+|--------|---------------------------|---------------------------|
+| Performance | Better - tracks only accessed properties | All @Published trigger redraws |
+| Boilerplate | Less - no @Published needed | More - requires @Published |
+| Property wrapper | `@State` / `@Environment` | `@StateObject` / `@EnvironmentObject` |
+| Minimum target | macOS 14+ / iOS 17+ | macOS 10.15+ / iOS 13+ |
+
+**✅ Good (@Observable):**
+
+```swift
+@Observable
+class ContentViewModel {
+  var items: [Item] = []
+  var isLoading = false
+}
+
+struct ContentView: View {
+  @State private var viewModel = ContentViewModel()
+  // ...
+}
+```
+
+**Legacy (ObservableObject):**
+
+```swift
+class ContentViewModel: ObservableObject {
+  @Published var items: [Item] = []
+  @Published var isLoading = false
+}
+
+struct ContentView: View {
+  @StateObject private var viewModel = ContentViewModel()
+  // ...
+}
+```
+
+### @Environment vs @EnvironmentObject - P1
+
+Use `@Environment` with `@Observable` for type-safe environment injection.
+
+| Aspect | @Environment (Recommended) | @EnvironmentObject (Legacy) |
+|--------|----------------------------|----------------------------|
+| Type safety | Compile-time | Runtime (crash if missing) |
+| Usage | `@Environment(MyType.self)` | `@EnvironmentObject var obj: MyType` |
+| For | @Observable classes | ObservableObject classes |
+
+**✅ Good (@Environment):**
+
+```swift
+// App entry point
+@main
+struct MyApp: App {
+  @State private var appState = AppState()
+
+  var body: some Scene {
+    WindowGroup {
+      ContentView()
+        .environment(appState)
+    }
+  }
+}
+
+// Child view
+struct ChildView: View {
+  @Environment(AppState.self) private var appState
+  // ...
+}
+```
+
+**Legacy (@EnvironmentObject):**
+
+```swift
+// App entry point
+@main
+struct MyApp: App {
+  @StateObject private var appState = AppState()
+
+  var body: some Scene {
+    WindowGroup {
+      ContentView()
+        .environmentObject(appState)
+    }
+  }
+}
+
+// Child view - crashes if .environmentObject() is missing
+struct ChildView: View {
+  @EnvironmentObject var appState: AppState
+  // ...
+}
+```
+
+### @Bindable for two-way binding - P1
+
+Use `@Bindable` when you need bindings to an `@Observable` object's properties but don't own the instance.
+
+```swift
+struct EditView: View {
+  @Bindable var item: Item  // Item is @Observable
+
+  var body: some View {
+    TextField("Name", text: $item.name)
+  }
+}
+```
+
 ---
 
 ## View structure - P1
@@ -77,13 +193,30 @@ struct ProjectNameView: View {
 - Follow this order for properties:
   1. `@Environment` properties
   2. `@State` properties
-  3. `@Binding`, `@StateObject`, `@ObservedObject` properties
+  3. `@Binding`, `@Bindable`, `@StateObject`, `@ObservedObject` properties
   4. Regular properties (`let`, `var`)
   5. `body`
   6. `@ViewBuilder` subviews
   7. Methods
 
-**✅ Good:**
+**✅ Good (@Observable pattern):**
+
+```swift
+struct ContentView: View {
+  @Environment(\.dismiss) private var dismiss
+  @Environment(AppState.self) private var appState
+  @State private var text = ""
+  @State private var viewModel = ContentViewModel()
+  @Bindable var item: Item
+  let title: String
+
+  var body: some View {
+    // ...
+  }
+}
+```
+
+**✅ Good (Legacy ObservableObject pattern):**
 
 ```swift
 struct ContentView: View {
@@ -290,8 +423,10 @@ Text("Hello")
   .foregroundStyle(.primary)
   .padding()
   .background(.secondarySystemBackground)
-  .cornerRadius(8)
+  .clipShape(RoundedRectangle(cornerRadius: 8))
 ```
+
+> **Note:** Use `clipShape(RoundedRectangle(cornerRadius:))` instead of the deprecated `cornerRadius(_:)`.
 
 **Custom modifier example:**
 
@@ -301,7 +436,7 @@ struct CardModifier: ViewModifier {
     content
       .padding()
       .background(.secondarySystemBackground)
-      .cornerRadius(8)
+      .clipShape(RoundedRectangle(cornerRadius: 8))
       .shadow(radius: 2)
   }
 }
@@ -321,5 +456,8 @@ Text("Content")
 
 ## References
 
+- [ViewModel conventions](viewmodel.md)
 - [Apple SwiftUI Documentation](https://developer.apple.com/documentation/swiftui)
-- [SwiftUI Tutorials](https://developer.apple.com/tutorials/swiftui)
+- [Apple Observation Framework](https://developer.apple.com/documentation/observation)
+- [Migrating to @Observable](https://developer.apple.com/documentation/swiftui/migrating-from-the-observable-object-protocol-to-the-observable-macro)
+- [SwiftLee - @Observable Macro](https://www.avanderlee.com/swiftui/observable-macro-performance-increase-observableobject/)

@@ -4,30 +4,36 @@
 
 This document defines conventions for ViewModels in SwiftUI applications. ViewModels manage UI state and coordinate with UseCases to execute business logic.
 
+> **Note:** This document targets macOS 14+ / iOS 17+. Use `@Observable` for new code. Legacy `ObservableObject` patterns are provided for reference.
+
 ---
 
 ## Basic pattern - P1
 
 **Rules:**
 - Mark all ViewModels with `@MainActor`
-- Conform to `ObservableObject`
+- Use `@Observable` macro (recommended) or conform to `ObservableObject` (legacy)
 - Inject dependencies through the initializer
-- Use `@Published` only for UI-bound properties
+- Keep UI-bound properties minimal
 
-**Standard pattern:**
+### @Observable pattern (Recommended)
 
 ```swift
 @MainActor
-class ProjectNameViewModel: ObservableObject {
-  // MARK: - Published properties
+@Observable
+class ProjectNameViewModel {
+  // MARK: - Properties
 
-  @Published var items: [Item] = []
-  @Published var isLoading = false
-  @Published var errorMessage: String?
+  var items: [Item] = []
+  var isLoading = false
+  var errorMessage: String?
 
   // MARK: - Dependencies
 
+  @ObservationIgnored
   private let fetchItemsUseCase: FetchItemsUseCaseProtocol
+
+  @ObservationIgnored
   private let deleteItemUseCase: DeleteItemUseCaseProtocol
 
   // MARK: - Initialization
@@ -77,6 +83,46 @@ class ProjectNameViewModel: ObservableObject {
   }
 }
 ```
+
+**Key points for @Observable:**
+- Use `@ObservationIgnored` for dependencies (they don't need observation)
+- No `@Published` needed - all properties are automatically observed
+- Use `@State` in View to own the ViewModel
+- Performance: Only accessed properties trigger view updates
+
+### ObservableObject pattern (Legacy)
+
+```swift
+@MainActor
+class ProjectNameViewModel: ObservableObject {
+  // MARK: - Published properties
+
+  @Published var items: [Item] = []
+  @Published var isLoading = false
+  @Published var errorMessage: String?
+
+  // MARK: - Dependencies
+
+  private let fetchItemsUseCase: FetchItemsUseCaseProtocol
+  private let deleteItemUseCase: DeleteItemUseCaseProtocol
+
+  // MARK: - Initialization
+
+  init(
+    fetchItemsUseCase: FetchItemsUseCaseProtocol = FetchItemsUseCase(),
+    deleteItemUseCase: DeleteItemUseCaseProtocol = DeleteItemUseCase()
+  ) {
+    self.fetchItemsUseCase = fetchItemsUseCase
+    self.deleteItemUseCase = deleteItemUseCase
+  }
+
+  // ... methods same as above
+}
+```
+
+**When to use ObservableObject:**
+- Targeting macOS 13 / iOS 16 or earlier
+- Gradual migration from existing codebase
 
 ---
 
@@ -157,7 +203,40 @@ class ReminderViewModel: ObservableObject {
 
 ---
 
-## @Published usage - P1
+## Property observation - P1
+
+### With @Observable (Recommended)
+
+**Rules:**
+- All properties are automatically observed
+- Use `@ObservationIgnored` for properties that should not trigger updates
+- Dependencies should always be `@ObservationIgnored`
+
+**✅ Good:**
+
+```swift
+@MainActor
+@Observable
+class ProjectNameViewModel {
+  // UI-bound properties (automatically observed)
+  var visibleItems: [Item] = []
+  var isLoading = false
+  var errorMessage: String?
+
+  // Internal state (not observed)
+  @ObservationIgnored
+  private var allItems: [Item] = []
+
+  @ObservationIgnored
+  private var cache: [String: Data] = [:]
+
+  // Dependencies (never observed)
+  @ObservationIgnored
+  private let useCase: SomeUseCaseProtocol
+}
+```
+
+### With ObservableObject (Legacy)
 
 **Rules:**
 - Use `@Published` only for properties that drive UI updates
@@ -325,5 +404,8 @@ class OrderViewModel: ObservableObject {
 ## References
 
 - [Architecture](architecture.md)
+- [SwiftUI conventions](swiftui.md)
 - [Testing](testing.md)
 - [Apple Observation Framework](https://developer.apple.com/documentation/observation)
+- [Migrating to @Observable](https://developer.apple.com/documentation/swiftui/migrating-from-the-observable-object-protocol-to-the-observable-macro)
+- [SwiftLee - @Observable Macro](https://www.avanderlee.com/swiftui/observable-macro-performance-increase-observableobject/)

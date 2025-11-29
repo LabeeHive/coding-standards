@@ -254,7 +254,58 @@ class ReminderRepository: ReminderRepositoryProtocol {
 - Use protocol types for dependencies
 - Provide default values for production implementations
 
-**Example:**
+### Injection patterns by layer - P1
+
+Different layers use different injection patterns:
+
+```
+┌────────────────────────────────────────────────────────────────┐
+│  View layer                                                    │
+│  ├─ @State + @Observable    → Owning state                     │
+│  ├─ @Environment            → Shared state (@Observable)       │
+│  └─ let property            → Receiving only                   │
+├────────────────────────────────────────────────────────────────┤
+│  ViewModel / UseCase / Repository / Service                    │
+│  └─ Initializer Injection (Protocol) → All dependencies        │
+├────────────────────────────────────────────────────────────────┤
+│  System API abstraction                                        │
+│  ├─ Protocol abstraction    → Timer, complex APIs              │
+│  └─ Closure injection       → Date, UUID, simple values        │
+└────────────────────────────────────────────────────────────────┘
+```
+
+### View layer injection
+
+**For owned state (View creates the instance):**
+
+```swift
+struct ContentView: View {
+  @State private var viewModel = ContentViewModel()
+  // ...
+}
+```
+
+**For shared state (injected from parent):**
+
+```swift
+struct ChildView: View {
+  @Environment(AppState.self) private var appState
+  // ...
+}
+```
+
+**For receiving without ownership:**
+
+```swift
+struct ItemRow: View {
+  let item: Item  // Plain property, no wrapper
+  // ...
+}
+```
+
+### Non-View layer injection
+
+**Initializer injection with protocol types:**
 
 ```swift
 class SettingsViewModel: ObservableObject {
@@ -262,6 +313,18 @@ class SettingsViewModel: ObservableObject {
 
   init(feedbackRepository: FeedbackRepositoryProtocol = FeedbackRepository.shared) {
     self.feedbackRepository = feedbackRepository
+  }
+}
+```
+
+**System API abstraction (see [Mock patterns](mock_patterns.md)):**
+
+```swift
+class CacheManager {
+  private let dateGenerator: () -> Date
+
+  init(dateGenerator: @escaping () -> Date = Date.init) {
+    self.dateGenerator = dateGenerator
   }
 }
 ```
