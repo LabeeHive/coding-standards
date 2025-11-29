@@ -105,7 +105,10 @@ import SwiftUI
 **✅ Good:**
 
 ```swift
-class ProjectNameViewModel: ObservableObject {
+// @Observable pattern (Recommended for macOS 14+ / iOS 17+)
+@MainActor
+@Observable
+class ProjectNameViewModel {
   // MARK: - Type aliases
 
   typealias ItemID = String
@@ -116,8 +119,10 @@ class ProjectNameViewModel: ObservableObject {
 
   // MARK: - Properties
 
-  @Published var items: [Item] = []
-  @Published var isLoading = false
+  var items: [Item] = []
+  var isLoading = false
+
+  @ObservationIgnored
   private let repository: RepositoryProtocol
 
   // MARK: - Initialization
@@ -136,6 +141,18 @@ class ProjectNameViewModel: ObservableObject {
 
   private func process(_ data: Data) {
     // Implementation
+  }
+}
+
+// ObservableObject pattern (Legacy for macOS 13 / iOS 16 or earlier)
+@MainActor
+class LegacyViewModel: ObservableObject {
+  @Published var items: [Item] = []
+  @Published var isLoading = false
+  private let repository: RepositoryProtocol
+
+  init(repository: RepositoryProtocol) {
+    self.repository = repository
   }
 }
 ```

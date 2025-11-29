@@ -21,7 +21,7 @@ This document defines Swift and SwiftUI coding standards for Labee LLC projects.
 | Guide | Description |
 |-------|-------------|
 | [SwiftUI conventions](swiftui.md) | View structure and property ordering |
-| [ViewModel conventions](viewmodel.md) | @MainActor, @Published, and dependency injection |
+| [ViewModel conventions](viewmodel.md) | @MainActor, @Observable, and dependency injection |
 | [Architecture](architecture.md) | Layered MVVM pattern |
 
 ### Testing guides

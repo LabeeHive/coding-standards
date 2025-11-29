@@ -22,7 +22,9 @@ This document compares Labee LLC's Swift coding standards with industry-wide bes
 | Test naming | `[Method]_[Condition]_[Expected]` | Same (Swift Testing) | Aligned |
 | Boolean naming | `is`/`has`/`should` prefix | `is`/`has` prefix | Aligned |
 | Event handlers | `didTapXxx` | `didTapXxx` | Aligned |
-| @MainActor | Required | Recommended (critical in Swift 6) | Aligned |
+| @MainActor | Required | Required (Swift 6 strict concurrency) | Aligned |
+| @Observable | Recommended (macOS 14+) | Recommended (iOS 17+ / macOS 14+) | Aligned |
+| @Environment | Recommended | Recommended over @EnvironmentObject | Aligned |
 | Mock pattern | Mock Repository, not UseCase | Common practice | Good decision |
 | AAA pattern | Adopted | Standard | Aligned |
 
@@ -78,7 +80,7 @@ This document compares Labee LLC's Swift coding standards with industry-wide bes
 ┌─────────────────────────────────────┐
 │     View                            │  ← SwiftUI Views
 ├─────────────────────────────────────┤
-│     ViewModel                       │  ← UI State, @MainActor, ObservableObject
+│     ViewModel                       │  ← UI State, @MainActor, @Observable
 ├─────────────────────────────────────┤
 │     UseCase                         │  ← Business Logic (conditional)
 ├─────────────────────────────────────┤
