@@ -11,6 +11,7 @@ This repository contains shared coding standards for Labee LLC projects. Add it 
 | Directory | Description |
 |-----------|-------------|
 | [automation/](automation/) | Automation standards (Renovate, etc.) |
+| [docusaurus/](docusaurus/) | Docusaurus public site standards |
 | [documentation/](documentation/) | Documentation writing standards |
 | [github/](github/) | GitHub collaboration standards (Issues, PRs) |
 | [swift/](swift/) | Swift and SwiftUI coding standards |
