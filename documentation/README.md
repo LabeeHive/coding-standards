@@ -90,16 +90,6 @@ This page summarizes the most important rules. For details, see each guide.
 
 ---
 
-## Priority levels
-
-Each guide uses priority levels for specific rules:
-
-- **P1 (Required)**: Must be followed in all documentation
-- **P2 (Recommended)**: Should be followed when possible
-- **P3 (Optional)**: Nice-to-have for comprehensive documentation
-
----
-
 ## References
 
 - [Google Developer Documentation Style Guide](https://developers.google.com/style)

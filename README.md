@@ -25,6 +25,16 @@ This repository contains shared standards for Labee LLC projects. Add it as a Gi
 
 ---
 
+## Priority levels
+
+Each standard uses priority levels to indicate importance:
+
+- **P1 (Required)**: Must be followed
+- **P2 (Recommended)**: Should be followed when possible
+- **P3 (Optional)**: Nice-to-have
+
+---
+
 ## Installation
 
 ```bash

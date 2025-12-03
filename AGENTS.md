@@ -55,7 +55,7 @@ Document only what is necessary. Avoid duplication and over-explanation.
 
 ### Priority labels
 
-Use P1/P2/P3 priority labels in section headings as defined in `documentation/document_structure.md`.
+Use P1/P2/P3 priority labels in section headings. See `README.md` for definitions.
 
 ---
 
