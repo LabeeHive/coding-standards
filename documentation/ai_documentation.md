@@ -254,6 +254,33 @@ If requirements are unclear, ask for clarification before proceeding.
 
 ---
 
+## Communication tools - P3
+
+If the project uses communication tools (Slack, Discord, etc.) with AI agents, define usage rules in AGENTS.md.
+
+**Rules:**
+- Specify which channels AI agents can post to
+- Define when to post (progress updates, errors, and completions)
+- Clarify what requires human approval vs. autonomous action
+
+**Example:**
+
+```markdown
+## Communication
+
+- Post progress updates to #dev-updates
+- Ask for help in #help when blocked
+- Share completed work summary in #done
+- Get approval before posting to #general
+```
+
+**Rationale:**
+- AI agents need clear boundaries for autonomous communication
+- Prevents unexpected messages in inappropriate channels
+- Enables collaboration between AI agents and team members
+
+---
+
 ## Template - P2
 
 ### Basic template

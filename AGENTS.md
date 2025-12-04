@@ -6,8 +6,9 @@ Shared standards repository for Labee LLC projects. This repository is used as a
 
 ## Documentation structure
 
-```
+```text
 automation/         # Automation standards (Renovate, etc.)
+culture/            # Culture and behavioral principles
 docusaurus/         # Docusaurus public site standards
 documentation/      # Documentation writing standards
 github/             # GitHub collaboration standards (Issues, PRs)
@@ -36,6 +37,26 @@ swift/              # Swift and SwiftUI coding standards
 | GitHub PR standards | `github/pull_requests.md` |
 | Swift coding | `swift/` |
 | Docusaurus setup | `docusaurus/` |
+| Understanding culture/principles | `culture/` |
+
+---
+
+## Culture
+
+We value: **もっと自由に、もっと楽しく** (More freedom, more fun)
+
+### Principles
+
+1. **Freedom with responsibility** - Act freely. Own the results.
+2. **Be open** - Share openly. Explain your reasoning.
+3. **Involve others** - Work together. Bring others in.
+
+For AI agents:
+- When uncertain, ask before proceeding
+- Always explain your reasoning
+- One question is cheaper than one wrong assumption
+
+See `culture/` for details.
 
 ---
 

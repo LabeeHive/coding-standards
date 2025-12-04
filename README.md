@@ -17,6 +17,7 @@ This repository contains shared standards for Labee LLC projects. Add it as a Gi
 | Directory | Description |
 |-----------|-------------|
 | [automation/](automation/) | Automation standards (Renovate, etc.) |
+| [culture/](culture/) | Culture and behavioral principles |
 | [docusaurus/](docusaurus/) | Docusaurus public site standards |
 | [documentation/](documentation/) | Documentation writing standards |
 | [github/](github/) | GitHub collaboration standards (Issues, PRs) |
